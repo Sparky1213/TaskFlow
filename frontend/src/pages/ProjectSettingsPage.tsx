@@ -191,33 +191,6 @@ export default function ProjectSettingsPage() {
               </form>
             </div>
 
-            <div className="card">
-              <div className="card-header">
-                <h2 className="card-title">Invite via Email</h2>
-              </div>
-              <p className="card-desc">
-                Send an email invitation to join this project.
-              </p>
-              <form className="settings-form" onSubmit={handleSendInvite}>
-                <div className="form-row">
-                  <input
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="invite@example.com"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={sendingInvite}
-                  >
-                    {sendingInvite ? "Sending..." : "Send Invite"}
-                  </button>
-                </div>
-              </form>
-            </div>
-
             <div className="card card-danger">
               <div className="card-header">
                 <h2 className="card-title">Danger Zone</h2>

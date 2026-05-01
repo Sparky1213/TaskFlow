@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectRole {
+  admin
+  member
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+enum InviteStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+model User {
+  id              String          @id @default(cuid())
+  name            String
+  email           String          @unique
+  passwordHash    String
+  createdAt       DateTime        @default(now())
+  createdProjects Project[]       @relation("ProjectCreator")
+  memberships     ProjectMember[]
+  assignedTasks   Task[]          @relation("AssignedTasks")
+  createdTasks    Task[]          @relation("TaskCreator")
+  invitesCreated  Invite[]        @relation("InviteCreator")
+  comments        Comment[]       @relation("UserComments")
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  createdBy   String
+  createdAt   DateTime        @default(now())
+  creator     User            @relation("ProjectCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  tasks       Task[]
+  invites     Invite[]
+}
+
+model ProjectMember {
+  id            String      @id @default(cuid())
+  projectId     String
+  userId        String
+  roleInProject ProjectRole @default(member)
+  joinedAt      DateTime    @default(now())
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  assignedTo  String?
+  status      TaskStatus   @default(todo)
+  priority    TaskPriority @default(medium)
+  dueDate     DateTime?
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User?        @relation("AssignedTasks", fields: [assignedTo], references: [id], onDelete: SetNull)
+  creator     User         @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  comments    Comment[]
+
+  @@index([projectId])
+  @@index([assignedTo])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserComments", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Invite {
+  id         String       @id @default(cuid())
+  projectId  String
+  email      String
+  role       ProjectRole  @default(member)
+  token      String       @unique
+  status     InviteStatus @default(pending)
+  expiresAt  DateTime
+  createdBy  String
+  createdAt  DateTime     @default(now())
+  acceptedAt DateTime?
+  project    Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator    User         @relation("InviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([projectId, email])
+}

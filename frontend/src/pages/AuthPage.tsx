@@ -10,7 +10,7 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const { login, signup, loading } = useAuth();
   const { showToast } = useToast();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ export default function AuthPage() {
       } else {
         await login(email, password);
       }
-      navigate("/");
+      // navigate("/");
     } catch {
       showToast(
         isSignup
